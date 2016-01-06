@@ -1,4 +1,5 @@
 #include "WPILib.h"
+//#include "SmartDashboard.h"
 
 /**
  * This is a demo program showing the use of the RobotDrive class.
@@ -24,7 +25,7 @@ class Robot: public SampleRobot
 	Encoder* m_armEnc;
 	DigitalInput* m_toteH_MinDIO;
 	DigitalInput* m_canAnd4ToteH_MaxDIO;
-
+	int encCount;//from minDIO
 
 	//bool toMotion=false;
 	Victor* m_bite;
@@ -61,6 +62,12 @@ public:
 		m_bite=new Victor(5);
 		m_paradeState= new DigitalInput(1);
 		m_chargeState= new DigitalInput(0);
+
+		encCount=0;
+
+		//SmartDashboard.PutNumber("Enc Count from Min", encCount);
+		//SmartDashboard.PutBoolean("Min Height?", m_toteH_MinDIO);
+		//SmartDashboard.PutBoolean("Max Height?", m_canAnd4ToteH_MaxDIO);
 
 //		myRobot.SetExpiration(0.1);
 //		myRobot.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
@@ -112,7 +119,22 @@ public:
 			}else{
 				m_lift->Set(0.0);// backup stop
 			}*/
-			m_lift->Set(-ApplyDeadband(m_joystick2->GetY(), .1) * .7);
+			if(m_canAnd4ToteH_MaxDIO->Get()&&(m_joystick2->GetY())>=0){
+				m_lift->Set(0);
+			}else if(m_toteH_MinDIO->Get()&&(m_joystick2->GetY())<=0){
+				m_lift->Set(0);
+			}else{
+				m_lift->Set(-ApplyDeadband(m_joystick2->GetY(), .2) * .7);
+			}
+
+			if(m_joystick->GetRawButton(1))
+			m_lift->Set(-ApplyDeadband(m_joystick2->GetY(), .2) * .7);
+
+			if(m_toteH_MinDIO){
+				encCount=0;
+			}else{
+				encCount=m_armEnc->Get();
+			}
 
 			//Claw
 			/*if(m_joystick2->GetRawButton(2) //&& !m_paradeState->Get()
